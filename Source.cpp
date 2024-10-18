@@ -10,12 +10,11 @@
 #include <cmath>
 
 const int S = 9;
-const bool DEBUG = false;
 
 static void readMatrixFromFile(const std::string& filename, int m[S][S]);
 static void printFormattedMatrix(int m[S][S], int c[S][S]);
 static void fullRandBruteForce(int m[S][S]);
-static void setZeros(int m[S][S], int n);
+static void setRandomZeros(int m[S][S], int n);
 static void setColor(int color) {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, color);
@@ -41,7 +40,7 @@ int main()
     setColor(7);
     std::cout << " iterations/second" << std::endl << std::endl;
 
-    setZeros(m, n);
+    setRandomZeros(m, n);
     std::cout << "Sudoku:" << std::endl;
     printFormattedMatrix(m, m);
 
@@ -118,17 +117,11 @@ static void fullRandBruteForce(int m[S][S])
     std::uniform_int_distribution<> distrib(1, 9);
 
     long iterations = 0;
-    int tm[S][S] = {
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    };
+    int tm[S][S]{};
+
+    for (int i = 0; i < S; i++)
+        for (int j = 0; j < S; j++)
+            tm[i][j] = 0;
     
     while (true)
     {
@@ -189,7 +182,7 @@ static void fullRandBruteForce(int m[S][S])
     printFormattedMatrix(tm, m);
 }
 
-static void setZeros(int m[S][S], int n)
+static void setRandomZeros(int m[S][S], int n)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
