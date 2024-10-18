@@ -8,17 +8,19 @@
 #include <random>
 #include <windows.h>
 #include <cmath>
+#include <vector>
+using namespace std;
 
 const int S = 9;
+int numThreads = 5;
+long long iterations = 0;
+atomic<bool> stopThreads(false);
 
-static void readMatrixFromFile(const std::string& filename, int m[S][S]);
+static void readMatrixFromFile(const string& filename, int m[S][S]);
 static void printFormattedMatrix(int m[S][S], int c[S][S]);
 static void fullRandBruteForce(int m[S][S]);
 static void setRandomZeros(int m[S][S], int n);
-static void setColor(int color) {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hConsole, color);
-}
+static void setColor(int color);
 
 int main() 
 {
@@ -26,41 +28,58 @@ int main()
     int m[S][S];
     readMatrixFromFile("solved.txt", m);
 
-    std::cout << "Enter number of unknown items: ";
+    cout << "Enter number of unknown items: ";
     setColor(6);
-    std::cin >> n;
+    cin >> n;
     setColor(7);
-    std::cout << "Chance to generate valid solution: ";
+    cout << "Enter number of threads: ";
     setColor(6);
-    std::cout << 1 / pow(9, n) * 100 << "%" << std::endl;
+    cin >> numThreads;
     setColor(7);
-    std::cout << "My speed is ";
+    cout << "Chance to generate valid solution: ";
     setColor(6);
-    std::cout << "~26 681 854";
+    cout << 1 / pow(9, n) * 100 << "%" << endl;
     setColor(7);
-    std::cout << " iterations/second" << std::endl << std::endl;
+    cout << "My speed is ";
+    setColor(6);
+    cout << "~26 681 854";
+    setColor(7);
+    cout << " iterations/second" << endl << endl;
 
     setRandomZeros(m, n);
-    std::cout << "Sudoku:" << std::endl;
+    cout << "Sudoku:" << endl;
     printFormattedMatrix(m, m);
 
-    auto start = std::chrono::high_resolution_clock::now();
-    fullRandBruteForce(m);
-    auto end = std::chrono::high_resolution_clock::now();
+    // Main execution
+    auto start = chrono::high_resolution_clock::now();
+    vector<thread> threads;
 
-    std::chrono::duration<double, std::milli> duration = end - start;
-    std::cout << "Elapsed time: ";
+    for (int i = 0; i < numThreads; ++i) 
+    {
+        threads.push_back(thread(fullRandBruteForce, m));
+    }
+
+    for (auto& t : threads) 
+    {
+        t.join();
+    }
+
+    auto end = chrono::high_resolution_clock::now();
+    // Finished main execution
+
+    chrono::duration<double, milli> duration = end - start;
+    cout << "Elapsed time: ";
     setColor(6);
-    std::cout << duration.count();
+    cout << duration.count();
     setColor(7);
-    std::cout << " milliseconds" << std::endl << std::endl;
+    cout << " milliseconds" << endl << endl;
 
     system("pause");
     return 0;
 }
 
-static void readMatrixFromFile(const std::string& filename, int m[S][S]) {
-    std::ifstream file(filename);
+static void readMatrixFromFile(const string& filename, int m[S][S]) {
+    ifstream file(filename);
 
     for (int i = 0; i < S; ++i)
     {
@@ -79,14 +98,14 @@ static void printFormattedMatrix(int m[S][S], int c[S][S]) {
         for (int j = 0; j < S; ++j)
         {
             if (m[i][j] == 0) {
-                std::cout << " " << " ";
+                cout << " " << " ";
             }
             else {
                 if (m[i][j] != c[i][j]) {
                     setColor(9);
                 }
 
-                std::cout << m[i][j] << " ";
+                cout << m[i][j] << " ";
 
                 setColor(7);
             }
@@ -94,17 +113,17 @@ static void printFormattedMatrix(int m[S][S], int c[S][S]) {
             if ((j + 1) % 3 == 0 && j < 8)
             {
                 setColor(6);
-                std::cout << "| ";
+                cout << "| ";
                 setColor(7);
             }
         }
 
-        std::cout << std::endl;
+        cout << endl;
 
         if ((i + 1) % 3 == 0 && i < 8)
         {
             setColor(6);
-            std::cout << "- - - | - - - | - - -" << std::endl;
+            cout << "- - - | - - - | - - -" << endl;
             setColor(7);
         }
     }
@@ -112,11 +131,10 @@ static void printFormattedMatrix(int m[S][S], int c[S][S]) {
 
 static void fullRandBruteForce(int m[S][S])
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distrib(1, 9);
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> distrib(1, 9);
 
-    long iterations = 0;
     int tm[S][S]{};
 
     for (int i = 0; i < S; i++)
@@ -125,7 +143,12 @@ static void fullRandBruteForce(int m[S][S])
     
     while (true)
     {
-        refill:
+    refill:
+
+        if (stopThreads.load()) {
+            return;
+        }
+
         iterations++;
 
         for (int i = 0; i < S; i++)
@@ -171,22 +194,24 @@ static void fullRandBruteForce(int m[S][S])
         break;
     }
 
-    std::cout << std::endl;
+    stopThreads.store(true);
+
+    cout << endl;
     setColor(2);
-    std::cout << "Sudoku is solved!" << std::endl;
+    cout << "Sudoku is solved!" << endl;
     setColor(7);
-    std::cout << "Number of iterations: ";
+    cout << "Number of iterations: ";
     setColor(6);
-    std::cout << iterations << std::endl;
+    cout << iterations << endl;
     setColor(7);
     printFormattedMatrix(tm, m);
 }
 
 static void setRandomZeros(int m[S][S], int n)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distrib(1, 9);
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> distrib(1, 9);
 
     for (int i = 0; i < n; ++i) {
         int a = distrib(gen) - 1;
@@ -200,4 +225,10 @@ static void setRandomZeros(int m[S][S], int n)
             i--;
         }
     }
+}
+
+void setColor(int color)
+{
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, color);
 }
