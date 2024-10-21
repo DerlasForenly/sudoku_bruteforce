@@ -6,11 +6,9 @@ class ConsecutiveForce :
     public Method
 {
 protected:
-    int* sequence;
-    void incrementSequence(int l);
+    void run(Sudoku* sudoku);
 public:
-    void execute(Sudoku* sudoku);
-    void prepare();
+    void prepare(Sudoku* sudoku);
     void printMeta(const Sudoku* sudoku);
 };
 

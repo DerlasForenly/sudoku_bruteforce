@@ -1,64 +1,37 @@
 #include "RandomForce.h"
 using namespace std;
 
-void RandomForce::execute(Sudoku* sudoku)
+void RandomForce::run(Sudoku* sudoku)
 {
-    start = chrono::high_resolution_clock::now();
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> distrib(1, 9);
+    Sudoku temp(sudoku);
+    long long localIterations = 0;
+    int numberOfUnknowns = sudoku->getNumberOfUnknown();
+    int** vars = temp.getVariables();
 
-    while (true)
+    while (!temp.isSolved())
     {
-    refill:
-        iterations++;
-        for (int i = 0; i < Sudoku::SIZE; i++)
-        {
-            int rowItems[Sudoku::SIZE]{ 0 };
-            int colItems[Sudoku::SIZE]{ 0 };
-
-            for (int j = 0; j < Sudoku::SIZE; j++)
-            {
-                int originalItem = sudoku->getOriginalItem(i, j);
-                int value = originalItem == 0 ? random() : originalItem;
-                sudoku->setMatrixItem(i, j, value);
-                int ri = value;
-                rowItems[ri - 1]++;
-
-                originalItem = sudoku->getOriginalItem(j, i);
-                value = originalItem == 0 ? random() : originalItem;
-                sudoku->setMatrixItem(j, i, value);
-                int ci = value;
-                colItems[ci - 1]++;
-
-                if (colItems[ci - 1] > 1 || rowItems[ri - 1] > 1) {
-                    goto refill;
-                }
-            }
+        if (stopThreads.load()) {
+            iterations += localIterations;
+            return;
         }
 
-        for (int i = 0; i < Sudoku::SIZE; i++)
+        for (int i = 0; i < numberOfUnknowns; i++)
         {
-            int sectionItems[Sudoku::SIZE]{ 0 };
-
-            for (int j = 0; j < Sudoku::SIZE; j++)
-            {
-                int tmi = ((j - (j % 3)) / 3) + (i - (i % 3));
-                int tmj = (j % 3) + (i % 3) * 3;
-
-                int si = sudoku->getMatrixItem(tmi, tmj);
-                sectionItems[si - 1]++;
-
-                if (sectionItems[si - 1] > 1) {
-                    goto refill;
-                }
-            }
+            *vars[i] = distrib(gen);
         }
 
-        break;
+        localIterations++;
     }
 
-    end = chrono::high_resolution_clock::now();
+    stopThreads.store(true);
+    iterations += localIterations;
+    sudoku->setMatrix(&temp);
 }
 
-void RandomForce::prepare()
+void RandomForce::prepare(Sudoku* sudoku)
 {
     cout << "Enter number of threads (CPU " << thread::hardware_concurrency() << "): ";
     setColor(6);
@@ -79,5 +52,11 @@ void RandomForce::printMeta(const Sudoku* sudoku)
 
     cout << "Number of iterations: ";
     printColored(iterations, 6);
+    cout << endl;
+
+    cout << "Iterations per second: ";
+    setColor(6);
+    cout << fixed << setprecision(0) << iterations / countTime() * 1000;
+    setColor(7);
     cout << endl;
 }

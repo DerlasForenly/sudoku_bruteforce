@@ -2,65 +2,50 @@
 #include "Method.h"
 #include "Sudoku.h"
 
-void ConsecutiveForce::incrementSequence(int l)
+void ConsecutiveForce::run(Sudoku* sudoku)
 {
-    iterations++;
-    int i = 0;
-
-    while (i < l)
-    {
-        sequence[i]++;
-
-        if (sequence[i] > Sudoku::SIZE)
-        {
-            sequence[i] = 1;
-            i++;
-        }
-        else
-        {
-            break;
-        }
-    }
-}
-
-void ConsecutiveForce::execute(Sudoku* sudoku)
-{
-    start = chrono::high_resolution_clock::now();
+    Sudoku temp(sudoku);
+    long long localIterations = 0;
     int numberOfUnknowns = sudoku->getNumberOfUnknown();
-    sequence = new int[numberOfUnknowns];
+    int** vars = temp.getVariables();
+    for (int i = 0; i < numberOfUnknowns; i++) *vars[i] = 1;
 
-    for (int i = 0; i < numberOfUnknowns; i++)
+    while (!temp.isSolved())
     {
-        sequence[i] = 1;
-    }
+        if (stopThreads.load()) {
+            iterations += localIterations;
+            return;
+        }
 
+        int i = 0;
 
-    while (!sudoku->isSolved())
-    {
-        for (int x = 0; x < numberOfUnknowns;)
+        while (i < numberOfUnknowns)
         {
-            for (int i = 0; i < Sudoku::SIZE; i++)
+            *vars[i] += 1;
+
+            if (*vars[i] > Sudoku::SIZE)
             {
-                for (int j = 0; j < Sudoku::SIZE; j++)
-                {
-                    if (sudoku->getOriginalItem(i, j) == 0)
-                    {
-                        sudoku->setMatrixItem(i, j, sequence[x]);
-                        x++;
-                    }
-                }
+                *vars[i] = 1;
+                i++;
+            }
+            else
+            {
+                break;
             }
         }
 
-        incrementSequence(numberOfUnknowns);
+        localIterations++;
     }
 
-    delete[] sequence;
-    end = chrono::high_resolution_clock::now();
+    stopThreads.store(true);
+    iterations += localIterations;
+    sudoku->setMatrix(&temp);
 }
 
-void ConsecutiveForce::prepare()
+void ConsecutiveForce::prepare(Sudoku* sudoku)
 {
+    int threadsNumber = 1;
+    cout << "Currently number of threads for this method is always 1" << endl;
 }
 
 void ConsecutiveForce::printMeta(const Sudoku* sudoku)
@@ -71,5 +56,11 @@ void ConsecutiveForce::printMeta(const Sudoku* sudoku)
 
     cout << "Number of iterations: ";
     printColored(iterations, 6);
+    cout << endl;
+
+    cout << "Iterations per second: ";
+    setColor(6);
+    cout << fixed << setprecision(0) << iterations / countTime() * 1000;
+    setColor(7);
     cout << endl;
 }

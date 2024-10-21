@@ -31,6 +31,22 @@ void Sudoku::prepare()
     }
     createRandomEmptyFields();
 
+    variables = new int* [number_of_unknown_];
+    for (int x = 0; x < number_of_unknown_; x++) 
+    {
+        for (int i = 0; i < Sudoku::SIZE; i++)
+        {
+            for (int j = 0; j < Sudoku::SIZE; j++)
+            {
+                if (original[i][j] == 0)
+                {
+                    variables[x] = &matrix[i][j];
+                    x++;
+                }
+            }
+        }
+    }
+
     int mode = 0;
     cout << "Select method:" << endl;
     cout << "[1] Full random brute force" << endl;
@@ -52,7 +68,7 @@ void Sudoku::prepare()
         setMethod(make_unique<ConsecutiveForce>());
     }
 
-    method_->prepare();
+    method_->prepare(this);
 }
 
 void Sudoku::loadFromFile(const string filename)
@@ -132,6 +148,8 @@ void Sudoku::print(bool withMeta) const
     if (withMeta) {
         method_->printMeta(this);
     }
+
+    cout << endl;
 }
 
 bool Sudoku::isSolved() const
@@ -187,6 +205,11 @@ int Sudoku::getMatrixItem(int row, int column) const
     return matrix[row][column];
 }
 
+int* Sudoku::getMatrixItemAddress(int row, int column)
+{
+    return &matrix[row][column];
+}
+
 int Sudoku::getOriginalItem(int row, int column) const
 {
     return original[row][column];
@@ -195,6 +218,11 @@ int Sudoku::getOriginalItem(int row, int column) const
 int Sudoku::getNumberOfUnknown() const
 {
     return number_of_unknown_;
+}
+
+int** Sudoku::getVariables()
+{
+    return variables;
 }
 
 void Sudoku::setMatrixItem(int row, int column, int value)

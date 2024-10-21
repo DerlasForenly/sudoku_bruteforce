@@ -7,10 +7,9 @@ class RandomForce :
     public Method
 {
 protected:
-    int threadsNumber;
+    void run(Sudoku* sudoku);
 public:
-    void execute(Sudoku* sudoku);
-    void prepare();
+    void prepare(Sudoku* sudoku);
     void printMeta(const Sudoku* sudoku);
 };
 

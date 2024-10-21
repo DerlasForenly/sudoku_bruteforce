@@ -13,7 +13,7 @@ int main()
 
     printColored("\nSolved sudoku:\n", 6);
     sudoku.print(true);
-   
+
     system("pause");
     return 0;
 }
