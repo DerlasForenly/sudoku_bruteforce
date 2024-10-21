@@ -5,6 +5,42 @@ void Sudoku::setMethod(unique_ptr<Method>&& method)
     method_ = move(method);
 }
 
+Sudoku::Sudoku(Sudoku* sudoku)
+{
+    if (sudoku != nullptr) {
+        for (int i = 0; i < SIZE; ++i) {
+            for (int j = 0; j < SIZE; ++j) {
+                this->matrix_[i][j] = sudoku->matrix_[i][j];
+                this->original_[i][j] = sudoku->original_[i][j];
+            }
+        }
+
+        variables = new int* [sudoku->number_of_unknown_];
+        for (int x = 0; x < sudoku->number_of_unknown_; x++)
+        {
+            for (int i = 0; i < Sudoku::SIZE; i++)
+            {
+                for (int j = 0; j < Sudoku::SIZE; j++)
+                {
+                    if (original_[i][j] == 0)
+                    {
+                        this->variables[x] = &this->matrix_[i][j];
+                        x++;
+                    }
+                }
+            }
+        }
+    }
+    else {
+        cout << "[Sudoku]: Null pointer received!" << endl;
+    }
+}
+
+Sudoku::~Sudoku()
+{
+    delete[] variables;
+}
+
 void Sudoku::solve()
 {
     if (method_) {
@@ -38,9 +74,9 @@ void Sudoku::prepare()
         {
             for (int j = 0; j < Sudoku::SIZE; j++)
             {
-                if (original[i][j] == 0)
+                if (original_[i][j] == 0)
                 {
-                    variables[x] = &matrix[i][j];
+                    variables[x] = &matrix_[i][j];
                     x++;
                 }
             }
@@ -79,8 +115,8 @@ void Sudoku::loadFromFile(const string filename)
     {
         for (int j = 0; j < SIZE; ++j)
         {
-            file >> matrix[i][j];
-            original[i][j] = matrix[i][j];
+            file >> matrix_[i][j];
+            original_[i][j] = matrix_[i][j];
         }
     }
 
@@ -97,10 +133,10 @@ void Sudoku::createRandomEmptyFields()
         int a = distrib(gen) - 1;
         int b = distrib(gen) - 1;
 
-        if (matrix[a][b] != 0)
+        if (matrix_[a][b] != 0)
         {
-            matrix[a][b] = 0;
-            original[a][b] = 0;
+            matrix_[a][b] = 0;
+            original_[a][b] = 0;
         }
         else {
             i--;
@@ -114,15 +150,15 @@ void Sudoku::print(bool withMeta) const
     {
         for (int j = 0; j < SIZE; ++j)
         {
-            if (matrix[i][j] == 0) {
+            if (matrix_[i][j] == 0) {
                 std::cout << " " << " ";
             }
             else {
-                if (matrix[i][j] != original[i][j]) {
+                if (matrix_[i][j] != original_[i][j]) {
                     setColor(9);
                 }
 
-                std::cout << matrix[i][j] << " ";
+                std::cout << matrix_[i][j] << " ";
 
                 setColor(7);
             }
@@ -164,10 +200,10 @@ bool Sudoku::isSolved() const
 
         for (int j = 0; j < SIZE; j++)
         {
-            int ri = matrix[i][j];
+            int ri = matrix_[i][j];
             rowItems[ri - 1]++;
 
-            int ci = matrix[j][i];
+            int ci = matrix_[j][i];
             colItems[ci - 1]++;
 
             if (colItems[ci - 1] > 1 || rowItems[ri - 1] > 1) {
@@ -188,7 +224,7 @@ bool Sudoku::isSolved() const
             int tmi = ((j - (j % 3)) / 3) + (i - (i % 3));
             int tmj = (j % 3) + (i % 3) * 3;
 
-            int si = matrix[tmi][tmj];
+            int si = matrix_[tmi][tmj];
             sectionItems[si - 1]++;
 
             if (sectionItems[si - 1] > 1) {
@@ -202,17 +238,17 @@ bool Sudoku::isSolved() const
 
 int Sudoku::getMatrixItem(int row, int column) const
 {
-    return matrix[row][column];
+    return matrix_[row][column];
 }
 
 int* Sudoku::getMatrixItemAddress(int row, int column)
 {
-    return &matrix[row][column];
+    return &matrix_[row][column];
 }
 
 int Sudoku::getOriginalItem(int row, int column) const
 {
-    return original[row][column];
+    return original_[row][column];
 }
 
 int Sudoku::getNumberOfUnknown() const
@@ -227,5 +263,15 @@ int** Sudoku::getVariables()
 
 void Sudoku::setMatrixItem(int row, int column, int value)
 {
-    matrix[row][column] = value;
+    matrix_[row][column] = value;
+}
+
+void Sudoku::setMatrix(Sudoku* sudoku)
+{
+    for (int i = 0; i < SIZE; ++i) {
+        for (int j = 0; j < SIZE; ++j) {
+            this->matrix_[i][j] = sudoku->matrix_[i][j];
+            this->original_[i][j] = sudoku->original_[i][j];
+        }
+    }
 }

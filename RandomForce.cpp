@@ -13,8 +13,8 @@ void RandomForce::run(Sudoku* sudoku)
 
     while (!temp.isSolved())
     {
-        if (stopThreads.load()) {
-            iterations += localIterations;
+        if (stop_threads_.load()) {
+            iterations_ += localIterations;
             return;
         }
 
@@ -26,8 +26,8 @@ void RandomForce::run(Sudoku* sudoku)
         localIterations++;
     }
 
-    stopThreads.store(true);
-    iterations += localIterations;
+    stop_threads_.store(true);
+    iterations_ += localIterations;
     sudoku->setMatrix(&temp);
 }
 
@@ -35,7 +35,7 @@ void RandomForce::prepare(Sudoku* sudoku)
 {
     cout << "Enter number of threads (CPU " << thread::hardware_concurrency() << "): ";
     setColor(6);
-    cin >> threadsNumber;
+    cin >> threads_number_;
     setColor(7);
 }
 
@@ -51,12 +51,12 @@ void RandomForce::printMeta(const Sudoku* sudoku)
     cout << " milliseconds" << endl;
 
     cout << "Number of iterations: ";
-    printColored(iterations, 6);
+    printColored(iterations_, 6);
     cout << endl;
 
     cout << "Iterations per second: ";
     setColor(6);
-    cout << fixed << setprecision(0) << iterations / countTime() * 1000;
+    cout << fixed << setprecision(0) << iterations_ / countTime() * 1000;
     setColor(7);
     cout << endl;
 }

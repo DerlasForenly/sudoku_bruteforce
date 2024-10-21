@@ -12,8 +12,8 @@ public:
 	static const int SIZE = 9;
 
 protected:
-	int matrix[SIZE][SIZE]{ 0 };
-	int original[SIZE][SIZE]{ 0 };
+	int matrix_[SIZE][SIZE]{ 0 };
+	int original_[SIZE][SIZE]{ 0 };
 
 	// Used for fast access to unknown items
 	int** variables;
@@ -25,36 +25,8 @@ protected:
 
 public:
 	Sudoku(unique_ptr<Method>&& method = {}) : method_(move(method)) {}
-	Sudoku(Sudoku* sudoku) {
-		if (sudoku != nullptr) {
-			for (int i = 0; i < SIZE; ++i) {
-				for (int j = 0; j < SIZE; ++j) {
-					this->matrix[i][j] = sudoku->matrix[i][j];
-					this->original[i][j] = sudoku->original[i][j];
-				}
-			}
-
-			variables = new int* [sudoku->number_of_unknown_];
-			for (int x = 0; x < sudoku->number_of_unknown_; x++)
-			{
-				for (int i = 0; i < Sudoku::SIZE; i++)
-				{
-					for (int j = 0; j < Sudoku::SIZE; j++)
-					{
-						if (original[i][j] == 0)
-						{
-							this->variables[x] = &this->matrix[i][j];
-							x++;
-						}
-					}
-				}
-			}
-		}
-		else {
-			cout << "[Sudoku]: Null pointer received!" << endl;
-		}
-	}
-	~Sudoku() { delete[] variables; }
+	Sudoku(Sudoku* sudoku);
+	~Sudoku();
 
 	void solve();
 	void prepare();
@@ -70,14 +42,6 @@ public:
 
 	void setMethod(unique_ptr<Method>&& method);
 	void setMatrixItem(int row, int column, int value);
-	void setMatrix(Sudoku* sudoku)
-	{
-		for (int i = 0; i < SIZE; ++i) {
-			for (int j = 0; j < SIZE; ++j) {
-				this->matrix[i][j] = sudoku->matrix[i][j];
-				this->original[i][j] = sudoku->original[i][j];
-			}
-		}
-	}
+	void setMatrix(Sudoku* sudoku);
 };
 
