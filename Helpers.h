@@ -7,10 +7,13 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+using namespace std;
 
 static void setColor(int color);
-static void printColored(std::string text, int color);
-static void printColored(int number, int color);
+static int random();
+
+template <typename T>
+static void printColored(T item, int color);
 
 class Method;
 class Sudoku;
@@ -23,16 +26,19 @@ static void setColor(int color)
 	SetConsoleTextAttribute(hConsole, color);
 }
 
-static void printColored(std::string text, int color)
+template <typename T>
+static void printColored(T item, int color)
 {
 	setColor(color);
-	std::cout << text;
+	cout << item;
 	setColor(7);
 }
 
-static void printColored(int number, int color)
+static int random()
 {
-	setColor(color);
-	std::cout << number;
-	setColor(7);
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_int_distribution<> distrib(1, 9);
+
+	return distrib(gen);
 }

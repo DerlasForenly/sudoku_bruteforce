@@ -10,11 +10,7 @@ protected:
 	chrono::steady_clock::time_point start;
 	chrono::steady_clock::time_point end;
 
-	int countTime()
-	{
-		chrono::duration<double, milli> duration = end - start;
-		return duration.count();
-	}
+	double countTime();
 public:
 	virtual void printMeta(const Sudoku* sudoku) = 0;
 	virtual void prepare() = 0;

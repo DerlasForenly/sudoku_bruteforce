@@ -21,12 +21,12 @@ void Sudoku::prepare()
 
     cout << "Enter number of unknown items (max: 81): ";
     setColor(6);
-    cin >> numberOfUnknown_;
+    cin >> number_of_unknown_;
     setColor(7);
-    while (numberOfUnknown_ > 81) {
+    while (number_of_unknown_ > 81) {
         cout << "Number of unknowns is more than 81, enter again: ";
         setColor(6);
-        cin >> numberOfUnknown_;
+        cin >> number_of_unknown_;
         setColor(7);
     }
     createRandomEmptyFields();
@@ -77,7 +77,7 @@ void Sudoku::createRandomEmptyFields()
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(1, 9);
 
-    for (int i = 0; i < numberOfUnknown_; ++i) {
+    for (int i = 0; i < number_of_unknown_; ++i) {
         int a = distrib(gen) - 1;
         int b = distrib(gen) - 1;
 
@@ -180,4 +180,24 @@ bool Sudoku::isSolved() const
     }
 
     return true;
+}
+
+int Sudoku::getMatrixItem(int row, int column) const
+{
+    return matrix[row][column];
+}
+
+int Sudoku::getOriginalItem(int row, int column) const
+{
+    return original[row][column];
+}
+
+int Sudoku::getNumberOfUnknown() const
+{
+    return number_of_unknown_;
+}
+
+void Sudoku::setMatrixItem(int row, int column, int value)
+{
+    matrix[row][column] = value;
 }

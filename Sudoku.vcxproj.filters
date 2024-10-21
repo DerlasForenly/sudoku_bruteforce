@@ -27,6 +27,9 @@
     <ClCompile Include="ConsecutiveForce.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Method.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sudoku.h">

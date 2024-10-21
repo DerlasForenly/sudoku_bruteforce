@@ -4,6 +4,7 @@
 
 void ConsecutiveForce::incrementSequence(int l)
 {
+    iterations++;
     int i = 0;
 
     while (i < l)
@@ -67,4 +68,8 @@ void ConsecutiveForce::printMeta(const Sudoku* sudoku)
     cout << "Elapsed time: ";
     printColored(countTime(), 6);
     cout << " milliseconds" << endl;
+
+    cout << "Number of iterations: ";
+    printColored(iterations, 6);
+    cout << endl;
 }

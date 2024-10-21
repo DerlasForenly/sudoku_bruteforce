@@ -3,14 +3,12 @@ using namespace std;
 
 void RandomForce::execute(Sudoku* sudoku)
 {
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> distrib(1, 9);
-
     start = chrono::high_resolution_clock::now();
+
     while (true)
     {
     refill:
+        iterations++;
         for (int i = 0; i < Sudoku::SIZE; i++)
         {
             int rowItems[Sudoku::SIZE]{ 0 };
@@ -19,13 +17,13 @@ void RandomForce::execute(Sudoku* sudoku)
             for (int j = 0; j < Sudoku::SIZE; j++)
             {
                 int originalItem = sudoku->getOriginalItem(i, j);
-                int value = originalItem == 0 ? distrib(gen) : originalItem;
+                int value = originalItem == 0 ? random() : originalItem;
                 sudoku->setMatrixItem(i, j, value);
                 int ri = value;
                 rowItems[ri - 1]++;
 
                 originalItem = sudoku->getOriginalItem(j, i);
-                value = originalItem == 0 ? distrib(gen) : originalItem;
+                value = originalItem == 0 ? random() : originalItem;
                 sudoku->setMatrixItem(j, i, value);
                 int ci = value;
                 colItems[ci - 1]++;
@@ -56,6 +54,7 @@ void RandomForce::execute(Sudoku* sudoku)
 
         break;
     }
+
     end = chrono::high_resolution_clock::now();
 }
 
@@ -77,4 +76,8 @@ void RandomForce::printMeta(const Sudoku* sudoku)
     cout << "Elapsed time: ";
     printColored(countTime(), 6);
     cout << " milliseconds" << endl;
+
+    cout << "Number of iterations: ";
+    printColored(iterations, 6);
+    cout << endl;
 }

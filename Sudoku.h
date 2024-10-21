@@ -14,38 +14,25 @@ public:
 protected:
 	int matrix[SIZE][SIZE]{ 0 };
 	int original[SIZE][SIZE]{ 0 };
-	int numberOfUnknown_ = 81;
+	int number_of_unknown_ = 81;
 	unique_ptr<Method> method_;
 
 	void createRandomEmptyFields();
 
 public:
 	Sudoku(unique_ptr<Method>&& method = {}) : method_(move(method)) {}
+
 	void setMethod(unique_ptr<Method>&& method);
+	void setMatrixItem(int row, int column, int value);
+
 	void solve();
 	void prepare();
 	void loadFromFile(const string filename);
 	void print(bool withMeta = false) const;
 	bool isSolved() const;
 
-	void setMatrixItem(int row, int column, int value)
-	{
-		matrix[row][column] = value;
-	}
-
-	int getMatrixItem(int row, int column) const
-	{
-		return matrix[row][column];
-	}
-
-	int getOriginalItem(int row, int column) const
-	{
-		return original[row][column];
-	}
-
-	int getNumberOfUnknown() const
-	{
-		return numberOfUnknown_;
-	}
+	int getMatrixItem(int row, int column) const;
+	int getOriginalItem(int row, int column) const;
+	int getNumberOfUnknown() const;
 };
 
