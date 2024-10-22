@@ -129,7 +129,9 @@
   <ItemGroup>
     <ClCompile Include="ConsecutiveForce.cpp" />
     <ClCompile Include="Method.cpp" />
+    <ClCompile Include="MyBrainForce.cpp" />
     <ClCompile Include="RandomForce.cpp" />
+    <ClCompile Include="RandomFromPossibleForce.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Sudoku.cpp" />
   </ItemGroup>
@@ -137,7 +139,9 @@
     <ClInclude Include="ConsecutiveForce.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="Method.h" />
+    <ClInclude Include="MyBrainForce.h" />
     <ClInclude Include="RandomForce.h" />
+    <ClInclude Include="RandomFromPossibleForce.h" />
     <ClInclude Include="Sudoku.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

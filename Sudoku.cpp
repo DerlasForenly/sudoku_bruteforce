@@ -8,25 +8,17 @@ void Sudoku::setMethod(unique_ptr<Method>&& method)
 Sudoku::Sudoku(Sudoku* sudoku)
 {
     if (sudoku != nullptr) {
-        for (int i = 0; i < SIZE; ++i) {
-            for (int j = 0; j < SIZE; ++j) {
-                this->matrix_[i][j] = sudoku->matrix_[i][j];
-                this->original_[i][j] = sudoku->original_[i][j];
-            }
-        }
+        variables_ = new int* [sudoku->number_of_unknown_];
 
-        variables = new int* [sudoku->number_of_unknown_];
-        for (int x = 0; x < sudoku->number_of_unknown_; x++)
-        {
-            for (int i = 0; i < Sudoku::SIZE; i++)
-            {
-                for (int j = 0; j < Sudoku::SIZE; j++)
+        for (int i = 0, x = 0; i < SIZE; ++i) {
+            for (int j = 0; j < SIZE; ++j) {
+                matrix_[i][j] = sudoku->matrix_[i][j];
+                original_[i][j] = sudoku->original_[i][j];
+
+                if (original_[i][j] == 0)
                 {
-                    if (original_[i][j] == 0)
-                    {
-                        this->variables[x] = &this->matrix_[i][j];
-                        x++;
-                    }
+                    variables_[x] = &matrix_[i][j];
+                    x++;
                 }
             }
         }
@@ -38,7 +30,7 @@ Sudoku::Sudoku(Sudoku* sudoku)
 
 Sudoku::~Sudoku()
 {
-    delete[] variables;
+    delete[] variables_;
 }
 
 void Sudoku::solve()
@@ -67,7 +59,7 @@ void Sudoku::prepare()
     }
     createRandomEmptyFields();
 
-    variables = new int* [number_of_unknown_];
+    variables_ = new int* [number_of_unknown_];
     for (int x = 0; x < number_of_unknown_; x++) 
     {
         for (int i = 0; i < Sudoku::SIZE; i++)
@@ -76,7 +68,7 @@ void Sudoku::prepare()
             {
                 if (original_[i][j] == 0)
                 {
-                    variables[x] = &matrix_[i][j];
+                    variables_[x] = &matrix_[i][j];
                     x++;
                 }
             }
@@ -87,10 +79,12 @@ void Sudoku::prepare()
     cout << "Select method:" << endl;
     cout << "[1] Full random brute force" << endl;
     cout << "[2] Consecutive brute force" << endl;
+    cout << "[3] My brain force" << endl;
+    cout << "[4] Random from possible force" << endl;
     setColor(6);
     cin >> mode;
     setColor(7);
-    while (mode < 1 || mode > 2) {
+    while (mode < 1 || mode > 4) {
         cout << "Wrong number, enter again: ";
         setColor(6);
         cin >> mode;
@@ -102,6 +96,12 @@ void Sudoku::prepare()
     }
     else if (mode == 2) {
         setMethod(make_unique<ConsecutiveForce>());
+    }
+    else if (mode == 3) {
+        setMethod(make_unique<MyBrainForce>());
+    }
+    else if (mode == 4) {
+        setMethod(make_unique<RandomFromPossibleForce>());
     }
 
     method_->prepare(this);
@@ -195,8 +195,9 @@ bool Sudoku::isSolved() const
     */
     for (int i = 0; i < SIZE; i++)
     {
-        int rowItems[SIZE]{ 0 };
-        int colItems[SIZE]{ 0 };
+        int rowItems[SIZE]{};
+        int colItems[SIZE]{};
+        int sectionItems[SIZE]{};
 
         for (int j = 0; j < SIZE; j++)
         {
@@ -206,28 +207,13 @@ bool Sudoku::isSolved() const
             int ci = matrix_[j][i];
             colItems[ci - 1]++;
 
-            if (colItems[ci - 1] > 1 || rowItems[ri - 1] > 1) {
-                return false;
-            }
-        }
-    }
-
-    /*
-    Check for sections
-    */
-    for (int i = 0; i < SIZE; i++)
-    {
-        int sectionItems[SIZE]{ 0 };
-
-        for (int j = 0; j < SIZE; j++)
-        {
             int tmi = ((j - (j % 3)) / 3) + (i - (i % 3));
             int tmj = (j % 3) + (i % 3) * 3;
 
             int si = matrix_[tmi][tmj];
             sectionItems[si - 1]++;
 
-            if (sectionItems[si - 1] > 1) {
+            if (colItems[ci - 1] != 1 || rowItems[ri - 1] != 1 || sectionItems[si - 1] != 1) {
                 return false;
             }
         }
@@ -258,7 +244,46 @@ int Sudoku::getNumberOfUnknown() const
 
 int** Sudoku::getVariables()
 {
-    return variables;
+    return variables_;
+}
+
+vector<int> Sudoku::getPossible(int row, int column) const
+{
+    bool rowItems[SIZE]{};
+    bool colItems[SIZE]{};
+    bool sectionItems[SIZE]{};
+    vector<int> items;
+
+    for (int j = 0; j < SIZE; j++)
+    {
+        int ci = matrix_[row][j];
+        if (ci != 0) colItems[ci - 1] = true;
+    }
+
+    for (int i = 0; i < SIZE; i++)
+    {
+        int ri = matrix_[i][column];
+        if (ri != 0) rowItems[ri - 1] = true;
+    }
+
+    for (int i = row - row % 3; i < (row - row % 3) + 3; i++)
+    {
+        for (int j = column - column % 3; j < (column - column % 3) + 3; j++)
+        {
+            int si = matrix_[i][j];
+            if (si != 0) sectionItems[si - 1] = true;
+        }
+    }
+
+    for (int i = 0; i < SIZE; i++)
+    {
+        if (!sectionItems[i] && !colItems[i] && !rowItems[i])
+        {
+            items.push_back(i + 1);
+        }
+    }
+
+    return items;
 }
 
 void Sudoku::setMatrixItem(int row, int column, int value)
